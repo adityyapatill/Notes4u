@@ -1,19 +1,29 @@
-/* ==========================================================
-   FILE: server.js (Aapki main server file, isko update karein)
-   ==========================================================
-*/
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const fs = require('fs'); // File system module ko import kiya
+
 require('dotenv').config();
 
 const app = express();
 
-// Middlewares
 app.use(express.json());
 app.use(cors());
 
-// Database Connection
+// --- FINAL DEBUG CHECK ---
+// Hum check kar rahe hain ki auth.js file server ko mil rahi hai ya nahi.
+try {
+    if (fs.existsSync('./routes/auth.js')) {
+        console.log("SUCCESS: routes/auth.js file mil gayi!");
+    } else {
+        console.log("ERROR: routes/auth.js file nahi mili! Please check folder structure.");
+    }
+} catch(err) {
+    console.error("Error checking file:", err);
+}
+// --- DEBUG CHECK END ---
+
+
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://notesuser:notes12345@cluster0.sznudd4.mongodb.net/Notes4UDB?retryWrites=true&w=majority";
 
 mongoose.connect(MONGO_URI)
@@ -25,19 +35,12 @@ app.get('/', (req, res) => {
     res.json({ message: 'Welcome to Notes4U API! Server is live.' });
 });
 
-// Authentication routes
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 
-// --- YEH NAYA BADLAAV HAI ---
-// Notes routes ko yahan use karein
-// Yeh line aapke server ko batati hai ki /api/notes se shuru hone waale
-// saare routes ko routes/notes.js file mein dhoondhna hai.
 const notesRoutes = require('./routes/notes');
 app.use('/api/notes', notesRoutes);
 
-
-// Server Start
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server chalu ho gaya hai port ${PORT} par.`);
